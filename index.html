@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手账灵感瓶 · 给画师的每日灵感</title>
+<style>
+  :root {
+    --bg: #fdf3ea;
+    --bg2: #ffe9f2;
+    --ink: #6b4f3f;
+    --ink-soft: #9a7e6c;
+    --pink: #ff9eb5;
+    --pink-deep: #f4728f;
+    --blue: #a8d8ea;
+    --yellow: #ffd97d;
+    --mint: #b8e6c9;
+    --lilac: #d5c6f2;
+    --card: #fffdf9;
+    --shadow: rgba(160, 110, 90, .18);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Comic Sans MS", sans-serif;
+    background:
+      radial-gradient(circle at 15% 20%, var(--bg2) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, #e8f4ff 0%, transparent 45%),
+      var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .float-deco { position: fixed; font-size: 26px; opacity: .55; animation: floaty 6s ease-in-out infinite; pointer-events: none; z-index: 1; }
+  @keyframes floaty { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-18px) rotate(6deg); } }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 60px; position: relative; z-index: 2; }
+
+  header { text-align: center; margin-bottom: 24px; }
+  h1 {
+    font-size: 44px; letter-spacing: 4px; color: var(--pink-deep);
+    text-shadow: 2px 2px 0 #fff, 4px 4px 0 rgba(244,114,143,.2);
+  }
+  h1 .tilt { display: inline-block; transform: rotate(-4deg); }
+  .subtitle { margin-top: 10px; color: var(--ink-soft); font-size: 15px; }
+  .subtitle b { color: var(--pink-deep); }
+
+  .main { display: flex; gap: 28px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+
+  /* ===== 瓶子区 ===== */
+  .bottle-zone {
+    background: var(--card); border-radius: 32px; padding: 24px 24px 18px;
+    box-shadow: 0 12px 40px var(--shadow), inset 0 0 0 3px #ffe1d6;
+    text-align: center; width: 470px; position: relative;
+  }
+  .bottle-zone h2 { font-size: 20px; margin-bottom: 6px; color: var(--ink); }
+  .hint { font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; }
+  .bottle-count { font-size: 12.5px; color: var(--ink-soft); margin-top: 10px; }
+  .bottle-count b { color: var(--pink-deep); }
+
+  /* 元素类型选择 */
+  .cat-title { font-size: 15px; font-weight: bold; color: var(--ink); margin: 14px 0 8px; }
+  .cat-title small { font-weight: normal; color: var(--ink-soft); font-size: 12px; }
+  .cat-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .cat-chip {
+    padding: 7px 15px; border-radius: 999px; font-size: 13.5px; cursor: pointer; user-select: none;
+    background: #fff; color: var(--ink-soft); border: 2px solid #f0dcc9;
+    transition: all .15s; font-weight: bold;
+  }
+  .cat-chip:hover { transform: translateY(-2px); border-color: var(--pink); }
+  .cat-chip.on {
+    background: linear-gradient(135deg, #ffe1ea, #ffd6e3); color: #e0517a;
+    border-color: var(--pink-deep); box-shadow: 0 3px 0 rgba(244,114,143,.25);
+  }
+  .cat-chip.on[data-cat="食物"] { background: #fff3d1; color: #c08a1e; border-color: #e8b04a; box-shadow: 0 3px 0 rgba(232,176,74,.25); }
+  .cat-chip.on[data-cat="水果"] { background: #ffe1e1; color: #e05d5d; border-color: #f08a8a; box-shadow: 0 3px 0 rgba(240,138,138,.25); }
+  .cat-chip.on[data-cat="植物"] { background: #ddf5e5; color: #3d9b62; border-color: #7fcf9f; box-shadow: 0 3px 0 rgba(127,207,159,.25); }
+  .cat-chip.on[data-cat="动物"] { background: #dff1fa; color: #3d8fb5; border-color: #8cc4e0; box-shadow: 0 3px 0 rgba(140,196,224,.25); }
+  .cat-chip.on[data-cat="盐系小元素"] { background: #f0f0f0; color: #777; border-color: #bbb; box-shadow: 0 3px 0 rgba(160,160,160,.25); }
+  .cat-chip.on[data-cat="日常用品"] { background: #ece4fb; color: #8263d0; border-color: #b9a3ec; box-shadow: 0 3px 0 rgba(185,163,236,.25); }
+  .cat-chip.on[data-cat="天空与天气"] { background: #e2f0ff; color: #4a7fc1; border-color: #93bdec; box-shadow: 0 3px 0 rgba(147,189,236,.25); }
+  .cat-chip.on[data-cat="节日限定"] { background: #ffe6d9; color: #e07a3d; border-color: #f0a876; box-shadow: 0 3px 0 rgba(240,168,118,.25); }
+  .cat-chip.small { padding: 5px 14px; font-size: 13px; }
+  .num-chip {
+    width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%; font-size: 14px; font-weight: bold; cursor: pointer; user-select: none;
+    background: #fff; color: var(--ink-soft); border: 2px solid #f0dcc9; transition: all .15s;
+  }
+  .num-chip:hover { transform: translateY(-2px); border-color: var(--pink); }
+  .num-chip.on {
+    background: linear-gradient(135deg, var(--yellow), #ffc94d); color: #8a6410;
+    border-color: #e8b04a; box-shadow: 0 3px 0 rgba(232,176,74,.3);
+  }
+
+  /* 自定义元素 */
+  .custom-box { margin-top: 12px; border-top: 2px dashed #f0dcc9; padding-top: 8px; }
+  .custom-row { display: flex; gap: 6px; margin-top: 6px; }
+  .custom-row select {
+    flex: 0 0 108px; padding: 7px 6px; border-radius: 10px; border: 2px solid #f0dcc9;
+    background: #fff; color: var(--ink); font-family: inherit; font-size: 13px; outline: none;
+  }
+  .custom-row input {
+    flex: 1; min-width: 0; padding: 7px 10px; border-radius: 10px; border: 2px solid #f0dcc9;
+    background: #fff; color: var(--ink); font-family: inherit; font-size: 13px; outline: none;
+  }
+  .custom-row input:focus, .custom-row select:focus { border-color: var(--pink); }
+  .btn-tiny {
+    flex: 0 0 40px; background: var(--mint); color: #2f7a52; font-size: 17px;
+    padding: 0; border-radius: 12px; box-shadow: 0 3px 0 rgba(0,0,0,.08);
+  }
+  .custom-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; }
+  .custom-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #fff7e8; border: 1.5px solid #f0cf9a; color: #b07b1e;
+    padding: 3px 6px 3px 10px; border-radius: 999px; font-size: 12px; font-weight: bold;
+  }
+  .custom-tag button {
+    border: none; background: none; color: #d09a3e; cursor: pointer; font-size: 13px;
+    padding: 0 3px; line-height: 1;
+  }
+  .custom-tag button:hover { color: #e0517a; }
+  .custom-empty { font-size: 12px; color: #c9b29a; margin-top: 4px; }
+
+  /* 元素库弹窗 */
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(90,60,45,.35); backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 100;
+  }
+  .modal-mask.show { opacity: 1; pointer-events: auto; }
+  .elem-modal {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%,-46%) scale(.95); opacity: 0;
+    width: 620px; max-width: 94vw; max-height: 84vh;
+    background: var(--bg); border-radius: 26px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25), inset 0 0 0 3px #ffe1d6;
+    z-index: 110; display: flex; flex-direction: column; pointer-events: none;
+    transition: transform .3s cubic-bezier(.3,1.2,.4,1), opacity .3s;
+  }
+  .elem-modal.show { transform: translate(-50%,-50%) scale(1); opacity: 1; pointer-events: auto; }
+  .elem-head { padding: 20px 22px 10px; display: flex; justify-content: space-between; align-items: center; }
+  .elem-head h3 { font-size: 20px; color: var(--pink-deep); }
+  .elem-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 22px 10px; }
+  .elem-tab {
+    padding: 5px 13px; border-radius: 999px; font-size: 12.5px; font-weight: bold; cursor: pointer;
+    border: 2px solid #f0dcc9; background: #fff; color: var(--ink-soft); transition: all .15s;
+  }
+  .elem-tab:hover { border-color: var(--pink); }
+  .elem-tab.on { background: var(--pink); border-color: var(--pink-deep); color: #fff; }
+  .elem-addbar { display: flex; gap: 6px; padding: 0 22px 12px; }
+  .elem-addbar select {
+    flex: 0 0 120px; padding: 7px 6px; border-radius: 10px; border: 2px solid #f0dcc9;
+    background: #fff; color: var(--ink); font-family: inherit; font-size: 13px; outline: none;
+  }
+  .elem-addbar input {
+    flex: 1; min-width: 0; padding: 7px 10px; border-radius: 10px; border: 2px solid #f0dcc9;
+    background: #fff; color: var(--ink); font-family: inherit; font-size: 13px; outline: none;
+  }
+  .elem-addbar input:focus, .elem-addbar select:focus { border-color: var(--pink); }
+  .elem-count { font-size: 12px; color: var(--ink-soft); padding: 0 24px 6px; }
+  .elem-list {
+    flex: 1; overflow-y: auto; padding: 2px 22px 20px;
+    display: flex; flex-wrap: wrap; gap: 7px; align-content: flex-start;
+  }
+  .elem-pill { background: #fff; border: 1.5px solid #eadbc8; color: var(--ink); padding: 4px 11px; border-radius: 999px; font-size: 12.5px; }
+  .elem-pill.custom {
+    background: #fff7e8; border-color: #f0cf9a; color: #b07b1e; font-weight: bold;
+    display: inline-flex; gap: 4px; align-items: center;
+  }
+  .elem-pill.custom button { border: none; background: none; color: #d09a3e; cursor: pointer; font-size: 13px; padding: 0; line-height: 1; }
+  .elem-pill.custom button:hover { color: #e0517a; }
+
+  /* 纸条：已完成 / 粉碎 */
+  .history-card .btns { display: flex; gap: 6px; margin-top: 10px; }
+  .hbtn {
+    border: 1.5px solid #e3c1ae; background: #fff; color: #b5714e; border-radius: 999px;
+    font-size: 11.5px; padding: 4px 12px; cursor: pointer; font-family: inherit; font-weight: bold;
+  }
+  .hbtn:hover { background: #fff0e6; }
+  .hbtn.done-btn.on { background: #ddf5e5; border-color: #7fcf9f; color: #2f7a52; }
+  .hbtn.shred-btn { border-color: #f0b6c4; color: #e0517a; }
+  .hbtn.shred-btn:hover { background: #ffe1ea; }
+  .done-badge { background: #ddf5e5; color: #2f7a52; border-radius: 999px; font-size: 11px; padding: 2px 8px; font-weight: bold; }
+  .history-card.done { opacity: .68; }
+  .history-card.done .text { text-decoration: line-through; }
+  .history-card.shredding { animation: shred .45s ease forwards; pointer-events: none; }
+  @keyframes shred {
+    40% { transform: scale(1.06) rotate(2deg); opacity: 1; filter: blur(0); }
+    100% { transform: scale(.2) rotate(-16deg); opacity: 0; filter: blur(4px); }
+  }
+  .strip-in-bottle.done { opacity: .45; filter: grayscale(.8); text-decoration: line-through; }
+
+  .bottle-stage {
+    position: relative; height: 340px; display: flex; align-items: center;
+    justify-content: center; margin-top: 4px;
+  }
+  #bottleSvg { cursor: pointer; transition: transform .3s; flex: 0 0 auto; }
+  #bottleSvg:hover { transform: scale(1.03); }
+  #bottleSvg.shaking { animation: shake .6s ease; }
+  @keyframes shake {
+    0%,100% { transform: rotate(0); } 15% { transform: rotate(-7deg) translateY(-6px); }
+    35% { transform: rotate(6deg); } 55% { transform: rotate(-5deg) translateY(-3px); }
+    75% { transform: rotate(4deg); }
+  }
+  /* 纸条摆在瓶子左右的空白处 */
+  .strip-in-bottle {
+    position: absolute; width: 64px; padding: 7px 5px; border-radius: 4px;
+    font-size: 10.5px; line-height: 1.3; text-align: center; color: #7a5c48;
+    box-shadow: 0 2px 6px rgba(0,0,0,.14); word-break: break-all;
+    cursor: pointer; transition: transform .2s, box-shadow .2s; white-space: pre-line;
+  }
+  .strip-in-bottle.compact { font-size: 9.5px; line-height: 1.25; padding: 5px 4px; border-radius: 3px; }
+  .strip-in-bottle:hover { transform: scale(1.12) rotate(-3deg) !important; z-index: 30; box-shadow: 0 6px 16px rgba(0,0,0,.22); }
+  .strip-fly { animation: flyIn 1s ease-in forwards; }
+  @keyframes flyIn {
+    0% { position: fixed; left: 50%; top: 42%; transform: translate(-50%,-50%) scale(2.2) rotate(-14deg); opacity: 0; z-index: 50; }
+    25% { opacity: 1; }
+    100% { opacity: 1; z-index: 50; }
+  }
+
+  .sparkle { position: fixed; pointer-events: none; z-index: 60; animation: sparkleAnim .8s ease-out forwards; }
+  @keyframes sparkleAnim { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1.6) translateY(-30px); opacity: 0; } }
+
+  .btn {
+    border: none; cursor: pointer; font-family: inherit; font-weight: bold;
+    border-radius: 999px; transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 6px 0 rgba(0,0,0,.08);
+  }
+  .btn:hover { transform: translateY(-3px); }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.08); }
+  .btn-shake {
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-deep) 100%);
+    color: #fff; font-size: 19px; padding: 15px 44px; letter-spacing: 2px; margin-top: 10px;
+  }
+  .btn-small {
+    background: #fff; color: var(--pink-deep); font-size: 13px;
+    padding: 8px 18px; border: 2px dashed var(--pink);
+  }
+
+  /* ===== 结果卡片区 ===== */
+  .result-zone { width: 520px; max-width: 100%; }
+  .result-card {
+    background: var(--card); border-radius: 28px; padding: 26px;
+    box-shadow: 0 12px 40px var(--shadow), inset 0 0 0 3px #d6ecd9;
+    display: none; position: relative;
+  }
+  .result-card.show { display: block; animation: popIn .5s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes popIn { 0% { transform: scale(.7) rotate(-3deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .tag { padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 0 rgba(0,0,0,.06); }
+  .tag.pink { background: #ffe1ea; color: #e0517a; }
+  .tag.blue { background: #dff1fa; color: #3d8fb5; }
+  .tag.mint { background: #ddf5e5; color: #3d9b62; }
+  .tag.lilac { background: #ece4fb; color: #8263d0; }
+
+  #descText {
+    font-size: 15.5px; line-height: 2; color: var(--ink);
+    background: repeating-linear-gradient(transparent, transparent 29px, #ffe9e9 29px, #ffe9e9 30px);
+    padding: 4px 6px; min-height: 120px; white-space: pre-wrap;
+  }
+  #descText .line-label { color: var(--pink-deep); font-weight: bold; }
+  .result-actions { margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-copy { background: var(--mint); color: #2f7a52; font-size: 14px; padding: 10px 22px; }
+  .btn-again { background: var(--lilac); color: #6a4dbb; font-size: 14px; padding: 10px 22px; }
+
+  .empty-tip {
+    background: rgba(255,255,255,.7); border: 2px dashed #f3c9b8; border-radius: 28px;
+    padding: 60px 30px; text-align: center; color: var(--ink-soft); font-size: 15px; line-height: 2;
+  }
+  .empty-tip .big { font-size: 44px; display: block; margin-bottom: 8px; }
+
+  #toast {
+    position: fixed; top: 26px; left: 50%; transform: translateX(-50%) translateY(-80px);
+    background: var(--ink); color: #fff; padding: 10px 26px; border-radius: 999px;
+    font-size: 14px; transition: transform .35s; z-index: 100;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== 历史抽屉 ===== */
+  .drawer-mask {
+    position: fixed; inset: 0; background: rgba(90,60,45,.35); backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 80;
+  }
+  .drawer-mask.show { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: -460px; width: 430px; max-width: 92vw; height: 100vh;
+    background: var(--bg); box-shadow: -8px 0 40px rgba(0,0,0,.18);
+    transition: right .35s cubic-bezier(.3,1.2,.4,1); z-index: 90;
+    display: flex; flex-direction: column;
+  }
+  .drawer.show { right: 0; }
+  .drawer-head {
+    padding: 22px 24px 14px; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 2px dashed #eec9b6;
+  }
+  .drawer-head h3 { font-size: 20px; color: var(--pink-deep); }
+  .drawer-close {
+    width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+    background: #ffd9c9; color: #c25b3a; font-size: 17px; font-weight: bold;
+  }
+  .drawer-list { flex: 1; overflow-y: auto; padding: 18px 20px 30px; }
+  .history-card {
+    background: #fffdf9; border-radius: 18px; padding: 16px; margin-bottom: 14px;
+    box-shadow: 0 4px 14px var(--shadow); border-left: 6px solid var(--pink);
+    animation: popIn .4s ease;
+  }
+  .history-card:nth-child(4n+2) { border-left-color: var(--blue); }
+  .history-card:nth-child(4n+3) { border-left-color: var(--yellow); }
+  .history-card:nth-child(4n) { border-left-color: var(--mint); }
+  .history-card .meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .history-card .text { font-size: 13.5px; line-height: 1.9; color: var(--ink); white-space: pre-wrap; }
+  .history-card .copy-btn {
+    background: none; border: 1px solid #e3c1ae; color: #b5714e; border-radius: 999px;
+    font-size: 11px; padding: 3px 10px; cursor: pointer;
+  }
+  .history-card .copy-btn:hover { background: #fff0e6; }
+  .drawer-empty { text-align: center; color: var(--ink-soft); padding: 60px 20px; line-height: 2; }
+  .clear-history { background: none; border: none; color: #c9a08a; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 8px; }
+
+  footer { text-align: center; margin-top: 40px; color: #c4a794; font-size: 13px; }
+
+  @media (max-width: 980px) { .bottle-zone, .result-zone { width: 100%; } }
+</style>
+</head>
+<body>
+<span class="float-deco" style="left:6%;top:14%;animation-delay:0s">🌸</span>
+<span class="float-deco" style="left:88%;top:10%;animation-delay:1.2s">☁️</span>
+<span class="float-deco" style="left:12%;top:70%;animation-delay:2s">🍄</span>
+<span class="float-deco" style="left:92%;top:60%;animation-delay:.6s">⭐</span>
+<span class="float-deco" style="left:78%;top:88%;animation-delay:1.6s">🎀</span>
+<span class="float-deco" style="left:4%;top:42%;animation-delay:2.4s">🍃</span>
+
+<div class="wrap">
+  <header>
+    <h1><span class="tilt">🫙</span> 手账灵感瓶 <span class="tilt" style="transform:rotate(5deg)">✨</span></h1>
+    <p class="subtitle">选好想要的<strong>元素类型</strong>，摇一摇瓶子 —— 只给一点<strong>风格 + 模糊的小元素</strong>，画面留给你自由发挥 🎨</p>
+  </header>
+
+  <div class="main">
+    <!-- 瓶子 -->
+    <div class="bottle-zone">
+      <h2>我的灵感瓶</h2>
+      <p class="hint">点瓶子可以打开历史灵感 ✧ 最多存 100 张纸条</p>
+
+      <div class="cat-title">想要哪类小元素？<small>（可多选）</small></div>
+      <div class="cat-grid" id="catGrid"></div>
+
+      <div class="cat-title">想要几个元素？<small>（1~8 个）</small></div>
+      <div class="cat-grid" id="countGrid"></div>
+
+      <div class="bottle-stage" id="bottleStage">
+        <svg id="bottleSvg" width="170" height="232" viewBox="0 0 220 300">
+          <g>
+            <rect x="88" y="4" width="44" height="30" rx="9" fill="#c98850"/>
+            <rect x="94" y="10" width="32" height="7" rx="3.5" fill="#e0a86e"/>
+          </g>
+          <rect x="84" y="32" width="52" height="22" rx="6" fill="#dceef5" stroke="#a9cfdd" stroke-width="2"/>
+          <path d="M 84 52 L 84 72 C 84 84 48 100 42 136 C 36 170 40 250 52 268 C 62 284 158 284 168 268 C 180 250 184 170 178 136 C 172 100 136 84 136 72 L 136 52 Z"
+                fill="rgba(190,228,242,.45)" stroke="#9cc9da" stroke-width="3"/>
+          <path d="M 62 124 C 58 158 58 226 64 262" stroke="rgba(255,255,255,.85)" stroke-width="8" stroke-linecap="round" fill="none"/>
+          <path d="M 76 118 C 73 152 73 210 77 252" stroke="rgba(255,255,255,.5)" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <ellipse cx="110" cy="271" rx="56" ry="7" fill="rgba(150,200,220,.4)"/>
+          <g transform="rotate(-4 110 195)">
+            <rect x="76" y="164" width="68" height="72" rx="10" fill="#fffdf5" stroke="#f0b6c4" stroke-width="2"/>
+            <text x="110" y="194" text-anchor="middle" font-size="18">🌸</text>
+            <text x="110" y="218" text-anchor="middle" font-size="13" fill="#e0517a" font-weight="bold">灵感瓶</text>
+            <text x="110" y="231" text-anchor="middle" font-size="9" fill="#c9a08a">inspiration</text>
+          </g>
+        </svg>
+      </div>
+      <button class="btn btn-shake" id="shakeBtn">🍹 摇一摇瓶子</button>
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap">
+        <button class="btn btn-small" id="viewElemsBtn">📚 查看所有元素</button>
+        <button class="btn btn-small" id="openHistoryBtn">📜 查看灵感小纸条</button>
+      </div>
+      <div class="bottle-count" id="bottleCount"></div>
+    </div>
+
+    <!-- 结果 -->
+    <div class="result-zone" id="resultZone">
+      <div class="empty-tip" id="emptyTip">
+        <span class="big">✨🍭✨</span>
+        还没有灵感纸条<br>选好元素类型，点左边的瓶子「摇一摇」<br>就会飘出一张只有<strong>风格和模糊元素</strong>的灵感卡~
+      </div>
+      <div class="result-card" id="resultCard">
+        <div class="tag-row" id="tagRow"></div>
+        <div id="descText"></div>
+        <div class="result-actions">
+          <button class="btn btn-again" id="againBtn">🔄 再摇一张</button>
+          <button class="btn btn-copy" id="copyBtn">📋 复制灵感</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>🫙 灵感瓶 · 只给一点点提示，剩下的画面交给你的画笔 · 献给爱画手账的你 💛</footer>
+</div>
+
+<!-- 历史抽屉 -->
+<div class="drawer-mask" id="drawerMask"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3>📜 瓶子里的灵感纸条</h3>
+    <button class="drawer-close" id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-list" id="drawerList"></div>
+</div>
+
+<!-- 元素库弹窗 -->
+<div class="modal-mask" id="elemMask"></div>
+<div class="elem-modal" id="elemModal">
+  <div class="elem-head">
+    <h3>📚 所有元素</h3>
+    <button class="drawer-close" id="elemClose">✕</button>
+  </div>
+  <div class="elem-tabs" id="elemTabs"></div>
+  <div class="elem-addbar">
+    <select id="customCat"></select>
+    <input id="customInput" placeholder="输入自定义元素词，如：会飞的鲸鱼书签" maxlength="24">
+    <button class="btn btn-tiny" id="customAdd" title="新增元素">➕ 新增</button>
+  </div>
+  <div class="elem-count" id="elemCount"></div>
+  <div class="elem-list" id="elemList"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= 风格库（只给风格名 + 一句色调提示，不描述画面） ================= */
+const STYLES = [
+  { name: "极简风", emoji: "⬜", tag: "黑白灰 + 一点点亮色，留白多" },
+  { name: "盐系", emoji: "🧂", tag: "米白奶茶色，克制又干净" },
+  { name: "甜系", emoji: "🍬", tag: "粉嫩奶油色，软软糯糯" },
+  { name: "复古做旧", emoji: "🕰️", tag: "棕黄做旧，旧信件的感觉" },
+  { name: "森系", emoji: "🌲", tag: "绿色系，水彩晕染" },
+  { name: "韩系", emoji: "🩰", tag: "干净排版，温柔色调" },
+  { name: "涂鸦手绘", emoji: "🖍️", tag: "粗线条马克笔，故意画歪" },
+  { name: "童话感", emoji: "🏰", tag: "梦幻云朵与星星点缀" },
+  { name: "和风", emoji: "🎋", tag: "和纸胶带与安静纹样" },
+  { name: "蒸汽波", emoji: "📼", tag: "粉紫渐变，梦核怀旧" },
+  { name: "暗黑可爱", emoji: "🦇", tag: "黑底撞粉紫，又酷又甜" },
+  { name: "奶油系", emoji: "🍦", tag: "奶油胶质感，立体蓬松" },
+  { name: "水彩晕染", emoji: "💧", tag: "透明水彩，边缘自然化开" },
+  { name: "简笔线条", emoji: "✏️", tag: "一笔画线条，单色极简" },
+  { name: "波普风", emoji: "🟡", tag: "高饱和撞色，圆点与粗描边" },
+  { name: "孟菲斯", emoji: "🔶", tag: "几何色块，波浪线与亮粉蓝" },
+  { name: "英伦复古", emoji: "🎩", tag: "格纹与墨绿酒红，绅士气息" },
+  { name: "美式复古", emoji: "🚗", tag: "60 年代广告配色，粗犷印刷感" },
+  { name: "莫兰迪色系", emoji: "🌫️", tag: "低饱和灰调，温柔高级" },
+  { name: "多巴胺色系", emoji: "🌈", tag: "高明度亮色，快乐加倍" },
+  { name: "美式乡村", emoji: "🥧", tag: "碎花格子与格子布，田园感" },
+  { name: "哥特少女", emoji: "🖤", tag: "黑蕾丝配蝴蝶结，华丽暗黑" },
+  { name: "蒸汽朋克", emoji: "⚙️", tag: "齿轮铜管，机械复古" },
+  { name: "像素风", emoji: "👾", tag: "8-bit 方块，复古电子游戏感" },
+  { name: "剪纸风", emoji: "✂️", tag: "层叠纸片，剪影与投影" },
+  { name: "拼贴风", emoji: "🗂️", tag: "报纸布料照片混贴，层次丰富" },
+  { name: "手账报纸风", emoji: "📰", tag: "英文印刷体打底，黑白色块点缀" },
+  { name: "透明玻璃感", emoji: "🔮", tag: "半透明叠色，通透轻盈" },
+  { name: "国潮插画", emoji: "🐉", tag: "传统纹样配亮色，国风新潮" },
+  { name: "梦境泡影", emoji: "🫧", tag: "泡泡与渐变，虚虚的柔软感" },
+];
+
+/* ================= 元素库：模糊灵感式词条，按类型分组 ================= */
+const ELEMENT_LIB = {
+  "食物": ["汽水感棒棒糖", "融化一半的冰淇淋", "软绵绵的吐司", "冒着热气的拉面", "果酱小饼干", "爆米花纸桶", "糖霜甜甜圈", "焦糖布丁", "热可可配棉花糖", "奶油草莓蛋糕", "海苔饭团", "章鱼小丸子", "烤到微焦的松饼", "草莓大福", "切开的可颂", "一串糖葫芦", "三颗麻薯串", "咕嘟冒泡的关东煮", "黄油玉米杯", "剥开的烤红薯", "蒸笼里的小笼包", "一碗白米饭配梅子", "茶叶蛋剥壳", "溏心蛋切开", "蛋包饭淋酱", "咖喱猪排饭", "一碗亲子丼", "寿司拼盘", "手卷寿司", "捏好的三角饭团", "味噌汤小碗", "乌冬面挑起", "竹笼荞麦面", "章鱼形小香肠", "草莓蛋糕卷", "抹茶千层切块", "提拉米苏小杯", "马卡龙叠塔", "酥皮泡芙", "葡式蛋挞两颗", "芝士挞半口", "蝴蝶酥几片", "菠萝包刚出炉", "蛋仔小饼一袋", "人形烧小脸", "鲷鱼烧塞满", "团子烤串", "红豆车轮饼", "奶油号角酥", "双色冰棒", "玻璃碗刨冰", "圣代长勺", "雪糕车小窗", "玻璃瓶可乐", "弹珠汽水吱一声", "珍珠奶茶插粗管", "柠檬茶易拉罐", "咖啡杯拉花叶子", "拿铁小碗", "手冲咖啡壶滴水", "抹茶配和果子", "红豆大福摊开", "樱花饼包叶", "三角粽子解开", "汤圆浮碗", "八宝粥料足", "糖炒栗子纸袋", "棉花糖一大串", "咬一口的苹果糖", "巧克力排块掰格", "薯片袋鼓鼓", "虾条小桶", "苏打饼干叠叠", "夹心饼干对半", "牛角酥掉渣", "蛋卷筒竖放", "小汉堡堆高", "热狗挤 mustard", "薯条盒倾倒", "鸡块蘸酱碟", "披萨拉丝一角", "意面卷叉子", "焗饭烤碗", "玉米浓汤杯", "沙拉碗配色鲜", "水果拼盘切块", "泡面碗盖书", "杯面插叉", "小火锅咕嘟", "寿喜锅生蛋", "天妇罗垫纸", "炸虾尾翘起", "可乐饼切开", "煎饺一盘焦底", "小笼汤勺舀汤", "豆腐脑加糖水", "油条豆浆经典", "法棍半根", "贝果涂奶油芝士", "三明治叠层", "周日早午餐盘", "面包篮垫布", "黄油小块融化", "蜂蜜滴落搅拌棒", "果酱瓶插木勺", "红茶罐与茶匙", "下午茶三层架", "碎饼干屑一角"],
+  "水果": ["切开的西瓜", "糖渍橘子片", "一杯草莓牛奶", "柠檬气泡水", "一串青提", "水蜜桃切片", "猕猴桃切片", "刚洗过的樱桃", "菠萝角插签", "哈密瓜挖球", "一把蓝莓", "糖水杨梅", "红苹果带叶", "缺一口的青苹果", "鸭梨两颗靠背", "香蕉船冰淇淋", "芭乐切片摆盘", "剥壳的荔枝", "龙眼一串", "啃过的甘蔗段", "柿子挂在枝头", "裂开的石榴", "剥好的柚子瓣", "橙子对半挤压", "血橙切面好看", "金桔小盆栽", "青柠角配薄荷叶", "百香果对半舀", "芒果切网格翻花", "木瓜小船", "椰子插吸管", "榴莲一角冒尖", "山竹掰开白瓣", "红毛丹毛毛", "枇杷三颗成堆", "杏子对半去核", "油亮的黑布林", "无花果剖面玫红", "一颗桑葚染指尖", "蔓越莓干小袋", "葡萄干纸袋", "晃动的葡萄果冻", "橘子果酱罐", "草莓酱涂吐司", "苹果派一角冒热气", "香蕉牛奶玻璃瓶", "芒果冰沙杯", "西瓜小冰棒", "柠檬挞马林顶", "蓝莓玛芬爆顶", "樱桃蛋糕顶饰", "蜜桃乌龙茶壶", "柚子蜂蜜茶罐", "提手果篮", "水果摊小招牌", "鲜榨果汁瓶", "果汁分装小瓶", "水果糖玻璃罐", "橘皮糖丝卷卷", "啃剩的苹果核", "吐西瓜籽的小人", "爬墙的葡萄藤", "开花的苹果枝", "桃花小枝插瓶", "樱桃梗打个结", "柠檬叶两片", "柑橘小白花", "草莓田小垄", "蓝莓丛几簇", "一串红醋栗", "黑莓压弯枝条", "树莓叠小塔", "覆盆子糖纸", "果丹皮卷一根", "山楂片叠叠乐", "冬枣一小盘", "青梅酒玻璃瓶", "话梅小铁罐", "橄榄一小碟", "牛油果对半去核", "火龙果切月牙", "榴莲壳当碗", "蛇皮果一撮", "人参果两颗", "佛手柑异形", "观赏小南瓜", "小番茄一串挂藤", "圣女果切四瓣", "黄瓜切条配蘸酱", "彩椒圈圈", "紫甘蓝细丝", "玉米粒蹦出锅", "草莓形小夜灯", "水果牙签插着梨", "果皮折小船", "半颗椰壳当碗", "果切拼盒一份", "西瓜皮小灯笼", "李子布丁杯", "葡萄阿萨姆奶绿", "柿子椒托小物", "橘子皮开花", "杨桃横切星星"],
+  "植物": ["尤加利叶", "一颗蒲公英", "小雏菊", "一片四叶草", "薰衣草小束", "龟背竹叶片", "多肉小盆栽", "一片银杏叶", "干花花枝", "一串铃兰", "小松果", "几支麦穗", "小仙人掌开花", "碰一下就缩的含羞草", "大朵向日葵", "玫瑰花苞", "两支郁金香", "风信子球根发芽", "三色堇小脸", "牵牛花爬藤", "紫藤垂下来", "樱花枝满开", "梅花小枝横斜", "兰花小盆", "吊兰垂盆", "绿萝垂藤一尺", "蕨类卷卷嫩芽", "铁线蕨细叶", "龟背竹小苗", "两颗橡树果", "枫叶红两片", "桦树皮纹理", "一小束松针", "柏树枝弯弯", "冬青红果枝", "槲寄生一小簇", "苔藓小土丘", "蕨叶压成化石", "佛肚竹一节", "芦荟厚叶", "猪笼草吊袋", "捕蝇草张口", "含笑小花苞", "栀子花白一朵", "茉莉花环", "白玉兰一枝", "荷花一朵出水", "荷叶托露珠", "莲蓬仰头", "菖蒲叶直立", "芦苇随风", "狗尾巴草毛毛", "蒲公英种子飞散", "紫罗兰小花一撮", "风铃草摇铃", "铃铛花倒挂", "一捧满天星", "洋甘菊花环", "金盏花橙橙", "蒲苇毛茸茸", "兔尾草两支", "棉花枝三朵", "尤加利小圆果", "橄榄枝一束", "桂花细碎一枝", "柠檬叶带果", "榕树气根垂下", "竹节一截", "笋尖破土", "蕨类小盆栽", "空气凤梨悬空", "多肉拼盘", "迷你玻璃温室", "玻璃瓶插枝生根", "水培绿萝瓶", "小花圃一角", "爬藤月季墙", "树洞里的小秘密", "年轮木片剖面", "小树苗育苗盆", "落叶堆一堆", "松果叠小塔", "干橘子皮花", "押花书签", "花园小铲子", "园艺手套一双", "铁皮洒水壶", "花种子纸袋", "芽苗菜育苗盒", "豆芽小罐", "水仙球泡水", "风车茉莉爬架", "蔷薇果红红", "山茶花一朵掉落", "木槿朝开暮合", "紫阳花一大球", "勿忘我小束", "波斯菊小花田", "油橄榄枝", "银杏小苗", "三叶草丛一片", "薄荷掐一枝", "迷迭香插茎", "香草吊牌"], 
+  "动物": ["打盹的橘猫", "圆滚滚的企鹅", "竖着耳朵的小兔", "叼树枝的柴犬", "排队的小鸭子", "抱着松果的小刺猬", "停下来的白鸽", "慢慢爬的蜗牛", "两只蝴蝶", "塞满颊囊的仓鼠", "喷水的小鲸鱼", "蜷成一团的北极熊", "挂在树上的小考拉", "翻肚皮讨摸的猫", "伸懒腰的小狗", "打哈欠的柴犬幼犬", "追自己尾巴的小狗", "叼信封的鸽子", "屋檐下的燕子窝", "枝头的小麻雀", "站在电线上的小鸟一排", "啄米的小鸡", "母鸡带一群小鸡", "池塘里的锦鲤", "跃出水面的鱼", "吐泡泡的金鱼", "缸里游的斗鱼", "浮出水面的小海龟", "仰漂的海獭捂脸", "拍手的海豹", "跃起的海豚背鳍", "半透明的小水母", "抱着瓶子的小章鱼", "气鼓鼓的河豚", "立正的海马", "珊瑚丛里的小丑鱼", "背着壳的寄居蟹", "横着走的螃蟹", "举钳的小龙虾", "一闪一闪的萤火虫", "点水的蜻蜓", "树干上的独角仙", "鹿角虫顶角", "叶上的七星瓢虫", "搬家的蚂蚁一列", "采蜜的小蜜蜂", "啃叶子的毛毛虫", "结茧的蚕宝宝", "扑灯的飞蛾", "蹲在叶上的树蛙", "鼓腮的青蛙", "一串小蝌蚪", "盘在枝上的小蛇", "贴墙的壁虎", "卷尾的变色龙", "晒背的小蜥蜴", "浮面的鳄鱼眼睛", "晒壳的乌龟", "倒挂的蝙蝠", "抱着果子的松鼠", "偷吃的花栗鼠", "卷尾的小狐狸", "回头的小鹿", "滚落叶堆的刺猬", "蹬腿的小白兔", "垂耳的灰兔", "挂枝的小熊猫", "洗东西的浣熊", "翘尾的小臭鼬", "拱土的小野猪", "菌伞下的蘑菇刺猬", "卷毛的绵羊", "跳石头的小山羊", "哞哞的奶牛", "甩尾的小马", "竖耳的小毛驴", "踩泥坑的小猪", "游泳的鸭嘴兽", "口袋里的袋鼠宝宝", "挂枝打盹的树懒", "歪头眨眼的猫头鹰", "悬停的小蜂鸟", "单脚站立的火烈鸟", "大嘴的鹈鹕", "滑冰的企鹅", "蜷尾的北极狐", "驯鹿的鹿角", "踏雪的雪兔", "振翅的雪鸮", "吐圈的白色小鲸", "露出背鳍的虎鲸", "抱竹子的熊猫", "打滚的小老虎", "门口蹲的石狮子", "云朵上的小龙", "凤凰的尾羽", "低头吃草的独角兽", "雾里的麒麟小影", "低头喝水的小狗", "结伴迁徙的大雁", "雪地里的狐狸脚印"],
+  "盐系小元素": ["回形针", "撕角的票据", "英文报纸碎片", "小扣子", "邮票边角", "一段麻绳", "旧火柴盒", "洗衣标签", "胶带撕边", "书页折角", "旧车票", "布标织带", "小纸夹", "咖啡渍圆圈", "黑白格纹纸", "网格便签纸", "空白小相框", "胶片边条", "底片一条", "拆开的信封", "火漆印", "铅笔屑一撮", "橡皮擦屑", "散落的订书钉", "长尾夹", "标签纸卷", "打孔纸边", "一张复写纸", "便签纸叠堆", "手写日期章", "数字印章", "圆点印章", "英文单词剪报", "字典剪条", "收据小纸条", "门票存根", "地铁票卡", "圆形邮戳", "邮编方格框", "明信片的背面", "航空信封红蓝边", "复古小价签", "吊牌棉线", "棉线卷轴", "裁缝划粉", "缝衣针与顶针", "纽扣分格小盒", "金属拉链头", "织物小样布", "牛仔布小贴", "牛皮纸袋", "包装纸折角", "面包纸袋打卷", "展平的糖纸", "压平的瓶盖", "易拉环", "茶包小标签", "咖啡滤纸一张", "吸管纸套", "筷子纸套", "纸杯撕边", "苏打水酒标", "药瓶小标签", "说明书一角", "电线与插头", "几颗小螺丝钉", "金属垫片", "卷尺拉头", "砂纸一角", "窗纱一角", "石膏浮雕边", "水泥质感小方块", "旧瓷砖一角", "马赛克小格", "金属别针", "安全别针", "擦镜布", "纸巾压痕", "餐巾纸折角", "蛋糕纸托", "烘焙纸揉团", "锡纸小团", "一束橡皮筋", "曲别针串项链", "塑料编号牌", "行李标签", "登机牌一角", "书签细绳穗", "月历格子", "空白待办方框", "手写坐标格", "尺子刻度边", "圆规针孔", "剪刀虚线", "齿孔边条", "信封开窗", "快递面单", "条形码贴纸", "打码的一串数字", "复古键帽", "纽扣电池", "数据线缠绕"],
+  "日常用品": ["一只马克杯", "老式收音机", "暖黄小台灯", "一串钥匙", "圆框眼镜", "帆布包", "一盒蜡笔", "小雨伞", "信封和钢笔", "复古闹钟", "头戴式耳机", "小茶壶", "缝纫小剪刀", "玻璃汽水瓶", "搪瓷脸盆", "掉瓷的搪瓷杯", "烧水壶呜呜响", "保温杯", "保温饭盒", "分格便当盒", "筷子架一对", "调味罐三连", "油壶小嘴", "砂锅炖菜", "冒气的电饭煲", "烤箱手套一只", "打蛋器", "擀面杖", "量杯量勺一套", "漏勺", "茶滤小网", "手摇磨豆机", "咖啡压粉锤", "手冲细口壶", "饼干模具一套", "蛋糕转台", "裱花嘴排排", "冰箱贴一排", "冰格两格", "罐头起子", "捣蒜臼", "切葱花的菜板", "洗碗小海绵", "肥皂泡沫", "洗手液按压瓶", "卷起的毛巾", "洗澡球泡泡", "牙刷杯三支", "挤到底的牙膏", "小梳子", "圆镜子", "散落的发夹", "黑色发圈一圈", "香水瓶", "香皂小盒", "护手霜一管", "指甲油两瓶", "旋转口红", "粉扑小镜子", "眼镜盒", "隐形眼镜盒", "分格小药盒", "一片创可贴", "体温计", "一根棉签", "指甲剪", "小手电筒", "烛台蜡烛", "打火机", "火柴划痕", "空烟灰缸", "钥匙扣小挂饰", "书立夹一排书", "厚厚的词典", "插满笔的笔筒", "荧光笔排排站", "修正带", "印章小盒", "印台半干", "尺子三角板", "摇摇削笔机", "订书机", "票据小夹子", "牛皮文件袋", "相册翻角", "拍立得相机", "胶卷小盒", "老式转盘电话", "电话线绕圈", "遥控器一排", "插线板", "缠绕的充电线", "雨靴一双", "挂钩上的雨衣", "收起的折叠伞", "一只帆布鞋", "摆整齐的拖鞋", "毛线球一团", "编织小篮", "针线小盒", "卷尺一圈", "软尺挂脖"],
+  "天空与天气": ["弯弯的月亮", "棉花糖云朵", "一道小彩虹", "三两滴雨", "一颗闪的星星", "划过的流星", "初雪", "太阳花边", "雨后的小水洼", "傍晚的橘色天空", "雷云与闪电", "清晨的薄雾", "窗外的满月", "戴睡帽的月牙", "星星串成门帘", "星座连线图", "横跨的银河", "丝带一样的极光", "日出蛋黄色", "日落的剪影", "云缝里漏下的光", "丁达尔光柱", "逆光里的尘埃", "斜织的雨帘", "雨点打在伞面", "屋檐滴水成线", "水面涟漪一圈圈", "油膜虹光的小水洼", "雨靴踩出水花", "雷雨前的闷云", "分叉的闪电", "冰雹小弹珠", "窗上的霜花纹", "六瓣雪花特写", "歪戴围巾的小雪人", "雪地一串脚印", "压弯枝条的雪", "雪地路障小筒", "雾凇挂枝", "结霜的栏杆", "融雪滴答", "小小龙卷风", "台风预警小旗", "卷起的尘土小风", "吹飞裙摆的大风", "被风拉直的线绳", "晾衣绳上的床单鼓鼓", "叮当的风铃", "转圈的小风车", "顺风的纸飞机", "乘风飞散的蒲公英", "脱手的气球", "断线的风筝", "远处一个小热气球", "形状像小狗的云", "云朵下的小雨标", "戴墨镜的太阳", "打喷嚏的太阳", "躲进云里的月亮", "钓星星的月亮", "眨眼的星星", "流星的小尾巴", "夜里的萤火虫", "飘夜的小灯笼", "升起的孔明灯", "炸开的烟花", "手挥仙女棒", "篝火里蹦的火星", "灯塔的光束", "夜空里的探照灯", "雨天的霓虹灯", "湿路上反射的灯", "升腾的水蒸气", "热浪扭曲线", "打哈欠的春天", "梅雨季的湿气", "梅雨季的小伞", "立春的小芽", "夏至的烈日", "秋分的落叶", "冬至的雪屋顶", "阴天的灰调", "蓝天白云格子", "晴雨云交界线", "山顶的小气象站", "旋转的风向标", "爆表的温度计", "老式气压计", "晴天娃娃", "冰晶闪闪", "叶尖的露珠", "云洞漏光", "日晕小光环", "月晕一圈", "分层的彩霞", "染窗的朝霞", "晚霞里的归鸟", "旋转的星轨圈", "雨前低飞的燕子", "彩虹尽头的宝藏", "水洼里倒映的云"],
+  "节日限定": ["圣诞袜", "小南瓜灯", "一簇烟花", "小红灯笼", "爱心气球", "生日蜡烛", "圣诞树", "小月饼", "圣诞花环", "小蝙蝠", "春联福字", "许愿流星", "戴帽的小雪人", "圣诞老人剪影", "驯鹿拉雪橇", "礼物盒堆成山", "铃铛与丝带", "拐杖糖两根", "姜饼小屋", "微笑的姜饼人", "圣诞水晶球", "槲寄生小枝", "平安夜的小苹果", "烤火鸡大盘", "新年门松", "压岁红包", "手拿两根烟花棒", "跨年倒计时牌", "元旦第一缕日出", "舞龙舞狮", "元宵花灯", "浮起来的汤圆", "猜灯谜的纸条", "情人节的玫瑰", "巧克力礼盒", "一支爱心小箭", "共撑一把情侣伞", "情书的一角", "白色情人节饼干", "妇女节的郁金香", "植树节的小铲和树苗", "复活节彩蛋", "兔子耳朵发箍", "蛋壳编的小篮", "愚人节小丑帽", "劳动节的小扳手", "母亲节的康乃馨", "父亲节的领带", "儿童节的气球群", "端午的粽叶", "龙舟鼓槌", "艾草小束", "五彩香囊", "七夕的鹊桥", "牛郎织女两颗星", "中元的水上河灯", "教师节的粉笔花", "中秋捣药的兔子", "一盏桂花酒", "月宫里的玉兔", "国庆的小红旗", "重阳登高的花糕", "菊花酒小盏", "万圣节糖果袋", "万圣女巫尖帽", "弓背的黑猫", "墙角的蜘蛛网", "骷髅小糖果", "感恩节的玉米篮", "戴火鸡帽的小孩", "双十一的快递堆", "冬至的饺子盘", "数九天的窗花", "腊八粥料足", "小年的糖瓜", "除夕年夜饭桌", "春节的鞭炮串", "春节的糖果盒", "招财猫招手", "财神小贴画", "元宝堆成小山", "跳龙门的锦鲤", "灯谜灯笼串", "尖尖的生日帽", "切角的生日蛋糕", "许愿的烛光", "拉开的彩带礼炮", "气球拱门", "派对小三角旗", "派对口哨", "打开的惊喜盒子", "周年纪念的小星星", "抛向空中的毕业帽", "卷起的毕业证书", "入学的小书包", "开学的新铅笔", "圣诞倒数日历", "新年愿望清单", "圣诞姜饼挂钩", "万圣南瓜马车", "跨年的钟摆", "灯笼下的灯谜签"],
+};
+const CATS = Object.keys(ELEMENT_LIB);
+const CAT_EMOJI = { "食物": "🍔", "水果": "🍓", "植物": "🌿", "动物": "🐱", "盐系小元素": "📎", "日常用品": "🥛", "天空与天气": "🌙", "节日限定": "🎄" };
+
+/* 形容词库：按类型给元素加合适的修饰，让灵感更有画面感 */
+const ADJ = {
+  "食物": ["冒着热气的", "黏糊糊的", "甜到心里的", "刚出炉的", "咬了一口的", "胖乎乎的", "闪着油光的", "让人流口水的"],
+  "水果": ["带着水珠的", "酸酸甜甜的", "切开一半的", "饱满足水的", "刚洗好的", "颜色鲜亮的", "冰冰凉凉的"],
+  "植物": ["刚长出来的", "被压干成书签的", "毛茸茸的", "细细长长的", "带着泥土气的", "随风吹动的", "小巧的一株"],
+  "动物": ["懒洋洋的", "胖乎乎的", "毛茸茸的", "探头探脑的", "打盹的", "圆眼睛的", "好奇心满满的"],
+  "盐系小元素": ["边角微卷的", "贴歪了的", "泛黄旧的", "轻飘飘的", "叠在一起的", "被夹住的", "揉皱又展平的"],
+  "日常用品": ["旧旧的", "有点掉漆的", "用了很久的", "摆在桌角的", "小小的", "沉甸甸的", "擦得很亮的"],
+  "天空与天气": ["淡淡的", "刚下过雨的", "泛着橘光的", "被风吹散的", "清清凉凉的", "远远的一抹"],
+  "节日限定": ["喜庆的", "闪着小光的", "刚拆开的", "热热闹闹的", "软软鼓鼓的", "带一点点怀旧的"],
+};
+const ADJ_ANY = ["小小的", "亮晶晶的", "圆滚滚的", "歪歪的"];
+
+/* 模糊小提示：不描述具体画面，只给组合思路 */
+const TIPS = [
+  // 组合思路
+  "试试让它们出现在同一张便签的角落里",
+  "可以用同色系把它们串起来",
+  "让其中一个元素放大当主角，其他缩小当配角",
+  "用虚线或胶带把它们连在一起",
+  "把它们排成一条小小的日记时间线",
+  "其中一个可以是拟人的，带点小表情",
+  "试着让两个元素互相触碰，讲一个一句话的小故事",
+  "让它们围成一个圈，中间留白写字",
+  "全部用同一种笔触画一遍试试",
+  "把其中一个藏起来只露出一半，给别人找的乐趣",
+  "让它们的大小差距拉大，一大一小更有故事感",
+  "试着让其中一个元素出现在另一个的倒影里",
+  // 构图排版
+  "上下分层：上面留白写字，下面堆元素",
+  "试试斜对角构图，元素从左上走到右下",
+  "留一条竖向的空白当视觉呼吸口",
+  "用一条波浪线把画面轻轻分成两半",
+  "让元素稍微超出边框一点，更有生活感",
+  "把最重要的元素放在画面偏中心偏上的位置",
+  "给画面留一个缺口，像是没画完一样",
+  // 上色技法
+  "先铺一层淡淡的水彩底，再叠线条",
+  "只用两种颜色试试，看看能不能撑住整个画面",
+  "亮部留白，暗部用同色系加深就好",
+  "加一点高光小点，画面立刻亮起来",
+  "用同一种颜色画不同深浅的三个层次",
+  "试着让其中一个元素用完全跳脱的撞色",
+  "给边缘留一圈不上色的空白，像贴纸一样",
+  // 手账拼贴
+  "用撕纸代替画笔，边缘毛糙一点更好看",
+  "贴一张小照片或票根，元素绕着它排",
+  "用胶带压住一角，像是随手贴上的",
+  "把元素画成邮票或标签的样子，加一圈齿孔",
+  "用马克笔写上大大的英文单词做底，元素压在上面",
+  "拿印章盖几个，不用太齐，歪一点更自然",
+  "贴在方格纸上，让格子露出来当背景",
+  // 细节加料
+  "给其中一个元素加一点阴影，它就从纸上站起来了",
+  "加三两颗小星星或小圆点填补空白处",
+  "画一两条飘动的线，画面就有了风",
+  "给其中一个加上小腮红或小表情",
+  "在旁边写一句当日的小心情",
+  "加一个日期和星期几，手账感立刻出来了",
+  "让其中一个小元素掉在画面外面，暗示它刚刚滚过去",
+];
+const MOODS = ["慵懒的", "元气满满的", "安静治愈的", "古灵精怪的", "梦幻柔软的", "俏皮活泼的", "怀旧温柔的", "带一点点孤独感的"];
+
+/* ================= 核心逻辑 ================= */
+const CATS_KEY = "journal-bottle-cats";
+const STORE_KEY = "journal-inspiration-bottle-history";
+const MAX_HISTORY = 100;
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pickN(arr, n) {
+  const copy = [...arr], out = [];
+  while (out.length < n && copy.length) out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+  return out;
+}
+
+function getSelectedCats() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CATS_KEY));
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch {}
+  return [...CATS];
+}
+function saveCats(cats) { localStorage.setItem(CATS_KEY, JSON.stringify(cats)); }
+
+/* ================= 自定义元素 ================= */
+const CUSTOM_KEY = "journal-bottle-custom";
+const MAX_CUSTOM_PER_CAT = 100;
+
+/* 生成元素数量设置 */
+const COUNT_KEY = "journal-bottle-count";
+const MIN_COUNT = 1, MAX_COUNT = 8;
+function getCount() {
+  const n = Number(localStorage.getItem(COUNT_KEY));
+  return (n >= MIN_COUNT && n <= MAX_COUNT) ? n : 3;
+}
+function saveCount(n) { localStorage.setItem(COUNT_KEY, String(n)); }
+
+function loadCustom() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)) || {}; } catch { return {}; }
+}
+function saveCustom(obj) { localStorage.setItem(CUSTOM_KEY, JSON.stringify(obj)); }
+
+/* 某个类型的完整元素池 = 内置 + 自定义 */
+function poolFor(cat) {
+  const custom = loadCustom()[cat] || [];
+  return ELEMENT_LIB[cat].concat(custom);
+}
+
+/* 给元素加合适的形容词（已有的修饰就跳过，留一部分不加，保持呼吸感） */
+function decorate(word, cat) {
+  if (/^[一两两三几半]/.test(word)) return word;         // 自带数量词的不加
+  if (word.slice(0, 5).includes("的")) return word;        // 自带修饰的不加
+  if (Math.random() < 0.3) return word;                    // 三成不加，避免太满
+  const pool = (ADJ[cat] || []).concat(ADJ_ANY);
+  return pick(pool) + word;
+}
+
+/* 按用户选的数量抽取元素：每个选中类型尽量都出现，再补足到指定个数 */
+function buildElems(cats, n) {
+  const out = [], seen = new Set(), catOf = new Map();
+  const add = (raw, cat) => {
+    if (!raw || seen.has(raw)) return false;
+    seen.add(raw); out.push(raw); catOf.set(raw, cat); return true;
+  };
+  const lead = cats.length > n ? pickN(cats, n) : cats.slice();
+  lead.forEach(c => add(pick(poolFor(c)), c));
+
+  let guard = 0;
+  while (out.length < n && guard++ < 400) add(pick(poolFor(pick(cats))), pick(cats));
+  guard = 0;
+  while (out.length < n && guard++ < 100) {           // 词库不足时允许重复
+    const c = pick(cats); out.push(pick(poolFor(c))); catOf.set(out[out.length - 1], c);
+  }
+  return { words: out.sort(() => Math.random() - .5), catOf };
+}
+
+function generate() {
+  const cats = getSelectedCats();
+  const n = getCount();
+  const style = pick(STYLES);
+  const mood = pick(MOODS);
+  const tip = pick(TIPS);
+
+  const { words, catOf } = buildElems(cats, n);
+  const customWords = new Set(Object.values(loadCustom()).flat());
+  const elems = words.map(raw => {
+    const text = decorate(raw, catOf.get(raw));
+    return customWords.has(raw) ? "✦" + text : text;     // 自定义元素标上 ✦
+  });
+
+  const desc =
+    `风格：${style.name}（${style.tag}）\n` +
+    `内容：${elems.join("、")} 等\n` +
+    `氛围：${mood}\n` +
+    `小提示：${tip}~`;
+
+  return {
+    id: Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+    time: new Date().toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
+    tags: [
+      { text: `${style.emoji} ${style.name}`, cls: "pink" },
+      { text: `🌈 ${mood}`, cls: "mint" },
+      ...cats.map(c => ({ text: `${CAT_EMOJI[c]} ${c}`, cls: CATS.indexOf(c) % 2 ? "lilac" : "blue" })),
+    ],
+    desc,
+    short: `${style.name}\n${elems[0]}${elems[1] ? " " + elems[1] : ""}`,
+  };
+}
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { return []; }
+}
+function saveHistory(list) { localStorage.setItem(STORE_KEY, JSON.stringify(list.slice(0, MAX_HISTORY))); }
+
+/* ================= DOM ================= */
+const $ = id => document.getElementById(id);
+let currentIdea = null;
+
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function sparkles(x, y) {
+  for (let i = 0; i < 8; i++) {
+    const s = document.createElement("div");
+    s.className = "sparkle";
+    s.textContent = pick(["✨", "⭐", "💫", "🌟"]);
+    s.style.left = x + (Math.random() * 80 - 40) + "px";
+    s.style.top = y + (Math.random() * 60 - 30) + "px";
+    s.style.fontSize = 12 + Math.random() * 12 + "px";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  }
+}
+
+function renderTags(tags) {
+  $("tagRow").innerHTML = tags.map(t => `<span class="tag ${t.cls}">${t.text}</span>`).join("");
+}
+
+function showResult(idea) {
+  currentIdea = idea;
+  renderTags(idea.tags);
+  $("descText").innerHTML = idea.desc.replace(/</g, "&lt;").replace(/\n/g, "<br>")
+    .replace(/^(风格|内容|氛围|小提示)：/gm, '<span class="line-label">$1：</span>');
+  $("emptyTip").style.display = "none";
+  const card = $("resultCard");
+  card.classList.remove("show");
+  void card.offsetWidth;
+  card.classList.add("show");
+}
+
+/* ================= 纸条布局：摆在瓶子左右两侧的空白处 ================= */
+const STRIP_COLORS = ["#fff8dc", "#ffe4ec", "#e2f4e8", "#e3eefb", "#f0e6fb"];
+const BOTTLE_W = 170;            // 与 svg 宽度保持一致
+const COMPACT_AT = 20;           // 超过这个数量纸条改为精简样式
+
+function updateBottleCount() {
+  const n = loadHistory().length;
+  $("bottleCount").innerHTML = `🫙 瓶中已有 <b>${n}</b> / ${MAX_HISTORY} 张纸条`;
+}
+
+function layoutStrips(animateId) {
+  const stage = $("bottleStage");
+  if (!stage) return;
+  stage.querySelectorAll(".strip-in-bottle").forEach(e => e.remove());
+
+  const list = loadHistory().slice().reverse();      // 旧 → 新
+  const total = list.length;
+  updateBottleCount();
+  if (!total) { stage.style.height = ""; return; }
+
+  const stageW = stage.clientWidth || 422;
+  const compact = total > COMPACT_AT;
+  const perSide = Math.max(1, Math.ceil(total / 2));
+  // 纸条变多时瓶身区一起变高，避免堆成一团
+  const stageH = Math.min(720, Math.max(340, perSide * 26 + 40));
+  stage.style.height = stageH + "px";
+
+  // 左右两条空白列（瓶子本身占中间 BOTTLE_W 宽，纸条不压在瓶子上）
+  const colL = { x0: 6, x1: (stageW - BOTTLE_W) / 2 - 8 };
+  const colR = { x0: (stageW + BOTTLE_W) / 2 + 8, x1: stageW - 6 };
+  const slotH = Math.max(11, (stageH - 24) / perSide);
+  const used = { l: 0, r: 0 };
+  const startLeft = Math.random() < 0.5;
+
+  list.forEach((idea, idx) => {
+    // 左右交替摆放，偶尔随机打乱，两侧都有
+    let side = (idx % 2 === 0) === startLeft ? "l" : "r";
+    if (Math.random() < 0.12) side = side === "l" ? "r" : "l";
+    const col = side === "l" ? colL : colR;
+    const colW = Math.max(40, col.x1 - col.x0);
+    const width = Math.round(Math.min(
+      compact ? 76 : 98,
+      Math.max(compact ? 44 : 52, colW * (compact ? 0.66 : 0.84))
+    ));
+
+    const el = document.createElement("div");
+    el.className = "strip-in-bottle" + (idea.done ? " done" : "") + (compact ? " compact" : "");
+    el.dataset.ideaId = idea.id;
+    el.style.background = pick(STRIP_COLORS);
+    el.textContent = compact ? idea.short.split("\n")[0] : idea.short;
+    el.title = "点击查看这张灵感";
+    el.style.width = width + "px";
+
+    const k = used[side]++;
+    const left = col.x0 + Math.random() * Math.max(0, colW - width);
+    const bottom = 10 + k * slotH + Math.random() * Math.max(2, slotH * 0.4);
+    el.style.left = Math.round(left) + "px";
+    el.style.bottom = Math.round(bottom) + "px";
+    el.style.transform = `rotate(${(side === "l" ? -1 : 1) * (4 + Math.random() * 12)}deg)`;
+    el.style.zIndex = String(1 + Math.floor(Math.random() * 5));
+    el.onclick = () => { showResult(idea); sparkles(window.innerWidth / 2, window.innerHeight / 2); };
+
+    if (animateId && idea.id === animateId) el.classList.add("strip-fly");
+    stage.appendChild(el);
+  });
+
+  if (animateId) setTimeout(() => {
+    const t = stage.querySelector(".strip-fly");
+    if (t) t.classList.remove("strip-fly");
+  }, 1000);
+}
+
+/* 兼容旧调用：重建全部纸条 */
+function rebuildBottleStrips() { layoutStrips(); }
+
+function doShake() {
+  const svg = $("bottleSvg");
+  svg.classList.add("shaking");
+  setTimeout(() => svg.classList.remove("shaking"), 650);
+
+  setTimeout(() => {
+    const idea = generate();
+    currentIdea = idea;
+    showResult(idea);
+    const list = loadHistory();
+    list.unshift(idea);
+    saveHistory(list);
+    layoutStrips(idea.id);
+    sparkles(window.innerWidth * 0.28, window.innerHeight * 0.45);
+    const full = list.length >= MAX_HISTORY;
+    showToast(full
+      ? "✨ 纸条飘到瓶子旁边啦（已满 100 张，最旧的会被挤掉）"
+      : "✨ 一张新的灵感纸条飘到瓶子旁边啦！");
+  }, 550);
+}
+
+/* 元素类型选择器 */
+function renderCats() {
+  const selected = getSelectedCats();
+  $("catGrid").innerHTML = CATS.map(c =>
+    `<span class="cat-chip ${selected.includes(c) ? "on" : ""}" data-cat="${c}">${CAT_EMOJI[c]} ${c}</span>`
+  ).join("");
+  $("catGrid").querySelectorAll(".cat-chip").forEach(chip => {
+    chip.onclick = () => {
+      let sel = getSelectedCats();
+      const c = chip.dataset.cat;
+      if (sel.includes(c)) {
+        sel = sel.filter(x => x !== c);
+        if (!sel.length) { showToast("至少要留一种元素类型哦 🥺"); return; }
+      } else sel.push(c);
+      saveCats(sel);
+      renderCats();
+    };
+  });
+}
+
+/* 元素数量选择器 */
+function renderCountGrid() {
+  const cur = getCount();
+  const nums = [];
+  for (let i = MIN_COUNT; i <= MAX_COUNT; i++) nums.push(i);
+  $("countGrid").innerHTML = nums.map(n =>
+    `<span class="num-chip ${n === cur ? "on" : ""}" data-n="${n}">${n}</span>`
+  ).join("");
+  $("countGrid").querySelectorAll(".num-chip").forEach(chip => {
+    chip.onclick = () => {
+      saveCount(Number(chip.dataset.n));
+      renderCountGrid();
+      showToast(`每次会生成 ${chip.dataset.n} 个元素 ✨`);
+    };
+  });
+}
+
+/* 元素库弹窗 + 自定义元素管理 */
+let curElemCat = CATS[0];
+
+function openElemModal() { renderElemTab(); $("elemModal").classList.add("show"); $("elemMask").classList.add("show"); }
+function closeElemModal() { $("elemModal").classList.remove("show"); $("elemMask").classList.remove("show"); }
+
+function initElemModal() {
+  $("elemTabs").innerHTML = CATS.map(c =>
+    `<span class="elem-tab" data-cat="${c}">${CAT_EMOJI[c]} ${c}</span>`
+  ).join("");
+  $("elemTabs").querySelectorAll(".elem-tab").forEach(tab => {
+    tab.onclick = () => {
+      $("elemTabs").querySelectorAll(".elem-tab").forEach(t => t.classList.remove("on"));
+      tab.classList.add("on");
+      curElemCat = tab.dataset.cat;
+      renderElemTab();
+    };
+  });
+  $("customCat").innerHTML = CATS.map(c => `<option value="${c}">${CAT_EMOJI[c]} ${c}</option>`).join("");
+}
+
+function renderElemTab() {
+  const cat = curElemCat;
+  const builtIn = ELEMENT_LIB[cat] || [];
+  const custom = loadCustom()[cat] || [];
+  $("elemCount").textContent =
+    `${CAT_EMOJI[cat]} ${cat}：内置 ${builtIn.length} 个 ＋ 自定义 ${custom.length} 个（✦ 金色标签可删除）`;
+  $("elemList").innerHTML =
+    custom.map((w, i) =>
+      `<span class="elem-pill custom">✦ ${w.replace(/</g, "&lt;")}<button data-idx="${i}" title="删除">✕</button></span>`
+    ).join("") +
+    builtIn.map(w => `<span class="elem-pill">${w.replace(/</g, "&lt;")}</span>`).join("");
+  $("elemList").querySelectorAll(".elem-pill.custom button").forEach(btn => {
+    btn.onclick = () => {
+      const obj = loadCustom();
+      obj[curElemCat].splice(Number(btn.dataset.idx), 1);
+      saveCustom(obj);
+      renderElemTab();
+      showToast("已删除这个自定义元素 🗑️");
+    };
+  });
+}
+
+function addCustomElem() {
+  const input = $("customInput");
+  const word = input.value.trim().replace(/[,，、]/g, " ");
+  if (!word) { showToast("先输入一个元素词吧 ✏️"); return; }
+  const cat = $("customCat").value;
+  const obj = loadCustom();
+  obj[cat] = obj[cat] || [];
+  if (obj[cat].some(w => w === word)) { showToast("这个词已经在瓶子里啦 🥺"); return; }
+  if (obj[cat].length >= MAX_CUSTOM_PER_CAT) { showToast("这个类型最多存 100 个自定义元素哦"); return; }
+  obj[cat].push(word);
+  saveCustom(obj);
+  input.value = "";
+  input.focus();
+  // 如果当前正在看的正是这个分类，立刻能看到新元素
+  if (cat === curElemCat) renderElemTab();
+  showToast(`已加入「${cat}」：${word} ✨ 摇一摇就能摇出来啦`);
+}
+
+/* 历史抽屉 */
+function openDrawer() { renderHistory(); $("drawer").classList.add("show"); $("drawerMask").classList.add("show"); }
+function closeDrawer() { $("drawer").classList.remove("show"); $("drawerMask").classList.remove("show"); }
+
+function renderHistory() {
+  const list = loadHistory();
+  const box = $("drawerList");
+  if (!list.length) {
+    box.innerHTML = `<div class="drawer-empty">🫙<br>瓶子里还空空的~<br>快去摇一摇收集第一张灵感纸条吧！</div>`;
+    return;
+  }
+  box.innerHTML = list.map((item, i) => `
+    <div class="history-card ${item.done ? "done" : ""}" data-idx="${i}">
+      <div class="meta">
+        <span>🗓️ ${item.time} ${item.done ? '<span class="done-badge">✅ 已完成</span>' : ""}</span>
+        <button class="copy-btn" data-idx="${i}">📋 复制</button>
+      </div>
+      <div class="text">${item.desc.replace(/</g, "&lt;")}</div>
+      <div class="btns">
+        <button class="hbtn done-btn ${item.done ? "on" : ""}" data-idx="${i}">${item.done ? "↩️ 取消完成" : "✅ 已完成"}</button>
+        <button class="hbtn shred-btn" data-idx="${i}">💥 粉碎纸条</button>
+      </div>
+    </div>
+  `).join("") + `<div style="text-align:center"><button class="clear-history" id="clearBtn">🗑️ 清空所有纸条</button></div>`;
+
+  box.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.onclick = () => navigator.clipboard.writeText(list[btn.dataset.idx].desc).then(() => showToast("已复制到剪贴板 📋"));
+  });
+  box.querySelectorAll(".done-btn").forEach(btn => {
+    btn.onclick = () => toggleDone(Number(btn.dataset.idx));
+  });
+  box.querySelectorAll(".shred-btn").forEach(btn => {
+    btn.onclick = () => shredStrip(Number(btn.dataset.idx));
+  });
+  const clearBtn = $("clearBtn");
+  if (clearBtn) clearBtn.onclick = () => {
+    if (confirm("确定要把瓶子里的所有灵感纸条都倒掉吗？此操作不可恢复哦 🥺")) {
+      saveHistory([]);
+      rebuildBottleStrips();
+      renderHistory();
+      showToast("瓶子已清空，等待新的灵感 ✨");
+    }
+  };
+}
+
+/* 标记已完成 / 取消完成 */
+function toggleDone(idx) {
+  const list = loadHistory();
+  if (!list[idx]) return;
+  list[idx].done = !list[idx].done;
+  saveHistory(list);
+  rebuildBottleStrips();
+  renderHistory();
+  showToast(list[idx].done ? "太棒啦，这张灵感画完了 🎉" : "已改回待画状态 ✏️");
+}
+
+/* 粉碎纸条（带动画） */
+function shredStrip(idx) {
+  const list = loadHistory();
+  if (!list[idx]) return;
+  const card = $("drawerList").querySelector(`.history-card[data-idx="${idx}"]`);
+  if (!confirm("确定要粉碎这张纸条吗？粉碎后不可恢复哦 💥")) return;
+  if (card) card.classList.add("shredding");
+  setTimeout(() => {
+    const rest = loadHistory();
+    rest.splice(idx, 1);
+    saveHistory(rest);
+    rebuildBottleStrips();
+    renderHistory();
+    showToast("纸条已粉碎，碎碎平安 🧡");
+  }, 460);
+}
+
+
+function copyCurrent() {
+  if (!currentIdea) return;
+  navigator.clipboard.writeText(currentIdea.desc).then(() => showToast("灵感已复制，快去画吧 ✏️"));
+}
+
+/* ================= 事件绑定 ================= */
+$("shakeBtn").onclick = doShake;
+$("againBtn").onclick = doShake;
+$("copyBtn").onclick = copyCurrent;
+$("openHistoryBtn").onclick = openDrawer;
+$("drawerClose").onclick = closeDrawer;
+$("drawerMask").onclick = closeDrawer;
+$("bottleSvg").onclick = openDrawer;
+$("viewElemsBtn").onclick = openElemModal;
+$("elemClose").onclick = closeElemModal;
+$("elemMask").onclick = closeElemModal;
+$("customAdd").onclick = addCustomElem;
+$("customInput").addEventListener("keydown", e => { if (e.key === "Enter") addCustomElem(); });
+
+renderCats();
+renderCountGrid();
+initElemModal();
+layoutStrips();
+window.addEventListener("resize", () => layoutStrips());
+</script>
+</body>
+</html>
