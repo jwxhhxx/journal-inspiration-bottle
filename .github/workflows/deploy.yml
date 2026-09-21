@@ -24,10 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 注意：仓库首次开启 Pages 必须由仓库所有者在
+      # Settings -> Pages -> Source 中选择 "GitHub Actions"（GitHub 限制，
+      # workflow 自带的 GITHUB_TOKEN 无权创建 Pages 站点）。
+      # 开启之后，本工作流会在每次 push 到 main 时自动发布。
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Prepare site
         run: |
